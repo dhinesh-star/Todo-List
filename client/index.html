@@ -10,7 +10,7 @@
     <header>
         <h1> Todo List Application </h1>
     </header>
-    <section>
+    <section>   
         <div id="todo" class="generalClass">
             <div class="flexClass">
                 <h1>Todo</h1>
@@ -23,12 +23,15 @@
         <div id="done" class="generalClass">
             <h1>Done </h1>
         </div>
-        <div class="overlay" id="overlay"></div>
-        <div class="dialog-box" id="dialogBox"></div>
+        <div class="overlay" id="overlayForLoading">
+            <div class="spinLoading" id="spinLoading"></div>
+        </div>
+        <div class="overlay" id="overlayForAlertMessage">
+            <div class="alertMessageClass" id="alertMessage"></div>
+        </div>
+
     </section>
-    <footer>
-        <!-- <button class="addNewEventCSS"> Add New Task</button> -->
-    </footer>
+    <footer> </footer>
     <script src="script.js"></script>
 </body>
 </html>

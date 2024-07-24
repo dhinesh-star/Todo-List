@@ -6,12 +6,9 @@ const addNewTaskAPI = frameAPI(hostName,"add");
 const getAllTasksAPI = frameAPI(hostName,"getAllTask");
 const expiredTaskAPI = frameAPI(hostName,"getTimeExceedTasks");
 
-let currentDate = new Date();
-let nextDate = new Date(currentDate);
-console.log(nextDate);
-nextDate.setDate(currentDate.getDate()+1);
+let nextDate = new Date();
+nextDate.setDate(nextDate.getDate()+1);
 let formattedDate = nextDate.toISOString().split('T')[0];
-console.log(formattedDate);
 
 
 const taskItem = {
@@ -23,7 +20,6 @@ const taskItem = {
     "status": "Todo"
 }
 
-console.log(taskItem);
 let taskColorMap = {
     "Critical" : "red",
     "Important" : "yellow",
@@ -179,12 +175,10 @@ function getDescriptionAndPercentageCompletedDiv(parentDiv, description, complet
             }
             let updateStatusAPI = frameAPI(hostName,"updateBasedOnKey",params);
             response = await performAPICall("GET", updateStatusAPI);
-            console.log(response);
             params["key"] = "completedPercentage";
             params["value"] = percentCompleted;
             let updatePercentageCompletedAPI = frameAPI(hostName,"updateBasedOnKey",params);
             response = await performAPICall("GET", updatePercentageCompletedAPI);
-            console.log(response);
         })();
     })
     let scrollBarAndCompletedBtnDiv = document.createElement("div");
@@ -196,7 +190,6 @@ function getDescriptionAndPercentageCompletedDiv(parentDiv, description, complet
     completedBtn.addEventListener("click", () =>{
         let scrollVal = parentDiv.getElementsByTagName("input")[0];
         scrollVal.value = 100;
-        console.log(scrollVal);
         doneContainer.append(parentDiv);
         let deleteBtn = parentDiv.getElementsByClassName("deleteBtnCSS")[0];
         deleteBtn.style.display = "block";
@@ -209,12 +202,10 @@ function getDescriptionAndPercentageCompletedDiv(parentDiv, description, complet
             }
             let updateStatusAPI = frameAPI(hostName,"updateBasedOnKey",params);
             response = await performAPICall("GET", updateStatusAPI);
-            console.log(response);
             params["key"] = "completedPercentage";
             params["value"] = 100;
             let updatePercentageCompletedAPI = frameAPI(hostName,"updateBasedOnKey",params);
             response = await performAPICall("GET", updatePercentageCompletedAPI);
-            console.log(response);
         })();
     })
     scrollBarAndCompletedBtnDiv.appendChild(completedBtn);
@@ -223,55 +214,66 @@ function getDescriptionAndPercentageCompletedDiv(parentDiv, description, complet
     return descriptionAndPercentageCompletedDiv;
 }
 
-function footerSection(entireItem){
-    let footerDiv = document.createElement("div");
-    footerDiv.className = "dateTimeToBeCompletedDiv"; 
-    // footerDiv.classList.add("");
+function frameTheDateInputTag(taskId, completionDate){
     let inputDateDiv = document.createElement("input");
     inputDateDiv.type = "date";
     inputDateDiv.className = "dateTimeToBeCompleted";
     inputDateDiv.addEventListener("blur", (eventListener)=>{
-        console.log(eventListener.target.value);
         params = {
-            "taskId" : entireItem['id'],
+            "taskId" : taskId,
             "key" : "completionDate",
             "value" : eventListener.target.value
         }
         let dateChangeAPI = frameAPI(hostName,"updateBasedOnKey",params);
         (async () => {
             response = await performAPICall("GET", dateChangeAPI);
-            console.log(response);
+            let alertElementDiv = document.getElementById("alertMessage");
+            if(alertElementDiv.style.display == "block"){
+                closeDialog();
+                frameAlertMessage();
+            }
         })();
-    })
-
-    let epochTime = entireItem["completionDate"];
-    console.log(epochTime);
+    });
+    let epochTime = completionDate;
     let date = new Date(epochTime*1000);
     let formattedDate = date.toISOString().split("T")[0];
-    console.log(formattedDate);
     inputDateDiv.value = formattedDate;
-    footerDiv.appendChild(inputDateDiv);
+    return inputDateDiv;
+}
+
+function frameDeleteButton(taskId){
     let deleteBtn = document.createElement("button");
     deleteBtn.className = "deleteBtnCSS";
     deleteBtn.textContent = "Delete Task";
-    footerDiv.appendChild(deleteBtn);
     deleteBtn.addEventListener("click",(eventListener) =>{
-        console.log(eventListener.target.id);
-        let id = entireItem['id'];
-        console.log(id);
+        let id = taskId;
         let cardToBeDeleted = document.getElementById(id);
         cardToBeDeleted.remove();
         let params = {
-            "taskId" : entireItem['id'],
+            "taskId" : taskId
         }
         let deleteTaskAPI = frameAPI(hostName,"delete",params);
         (async () => {
             response = await performAPICall("GET", deleteTaskAPI);
-            console.log(response);
+            let alertElementDiv = document.getElementById("alertMessage");
+            if(alertElementDiv.style.display == "block"){
+                closeDialog();
+                frameAlertMessage();
+            }
         })();
+        
     })
+    return deleteBtn;
+}
+
+function footerSection(entireItem){
+    let footerDiv = document.createElement("div");
+    footerDiv.className = "dateTimeToBeCompletedDiv"; 
+    let inputDateDiv = frameTheDateInputTag(entireItem['id'], entireItem["completionDate"]);
+    footerDiv.appendChild(inputDateDiv);
+    let deleteBtn = frameDeleteButton(entireItem['id']);
+    footerDiv.appendChild(deleteBtn);
     deleteBtn.style.display = "none";
-    // deleteBtn.style.visibility = hidden;
     if(entireItem["status"] == "Done"){
         deleteBtn.style.display = "block";
     }
@@ -295,11 +297,11 @@ function frameAPI(hostName, endpoint, params = {}) {
 
 async function performAPICall(method, url, payload = {}) {
     try {
+        openLoading();
         let response;
         if (method === "GET") {
             response = await fetch(url);
             let responseFromDB = await response.json();
-            console.log('GET response data:', responseFromDB);
             return responseFromDB;
         } else if (method === "POST") {
             response = await fetch(url, {
@@ -310,14 +312,29 @@ async function performAPICall(method, url, payload = {}) {
                 body: JSON.stringify(payload)
             });
             let responseData = await response.json();
-            console.log('POST response data:', responseData);
             return responseData;
         }
     } catch (error) {
         console.error(`${method} request error:`, error);
     }
+    finally{
+        closeLoading();
+    }
 }
 
+function openLoading() {
+    let overlaySpinElement = document.getElementById("overlayForLoading");
+    let spinLoadingElement = document.getElementById("spinLoading");
+    overlaySpinElement.style.display = "flex";
+    spinLoadingElement.style.display = "block";
+}
+
+function closeLoading() {
+    let overlaySpinElement = document.getElementById("overlayForLoading");
+    let spinLoadingElement = document.getElementById("spinLoading");
+    overlaySpinElement.style.display = "none";
+    spinLoadingElement.style.display = "none";
+}
 
 function getDetailsFromBackEnd(){
     let responseFromDB 
@@ -326,14 +343,11 @@ function getDetailsFromBackEnd(){
         responseFromDB = responseFromDB["taskList"];
         for(let item of responseFromDB){
             let cardToBeAdded = getCardContainer(item);
-            console.log(item);
             if(item["status"].toLowerCase() == "todo") todoContainer.append(cardToBeAdded);
             else if(item["status"].toLowerCase() == "inprogess") inProgessContainer.append(cardToBeAdded);
             else if(item["status"].toLowerCase() == "done") doneContainer.append(cardToBeAdded);
         }
-        console.log(responseFromDB);
     })();
-    
 }
 
 function addNewEventFunction(){
@@ -351,36 +365,59 @@ function addNewEventFunction(){
 }
 
 function openDialog() {
-    document.getElementById('dialogBox').style.display = 'block';
-    document.getElementById('overlay').style.display = 'block';
+    let overlayForAlert = document.getElementById("overlayForAlertMessage");
+    let alertMessageDiv = document.getElementById("alertMessage");
+    overlayForAlert.style.display = "flex";
+    alertMessageDiv.style.display = "block";
 }
 
 function closeDialog() {
-    console.log("Inside the close dialog box");
-    document.getElementById('dialogBox').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
+    let overlayForAlert = document.getElementById("overlayForAlertMessage");
+    let alertMessageDiv = document.getElementById("alertMessage");
+    overlayForAlert.style.display = "none";
+    alertMessageDiv.style.display = "none";
+}
+
+function calculateTheDaysCrossed(taskActualEpochTime){
+    let currentEpochTime = Date.now();
+    currentEpochTime = currentEpochTime/1000;
+    console.log("currentEpochTime : ",currentEpochTime);
+    let daysCrossedTheDueDate = Math.floor((currentEpochTime-taskActualEpochTime)/86400);
+    return daysCrossedTheDueDate;
+}
+
+function frameCardTitle(taskName, taskActualEpochTime){
+    let daysCrossedTheDueDate = calculateTheDaysCrossed(taskActualEpochTime);
+    let cardTitle = document.createElement("div");
+    cardTitle.innerHTML = taskName+"<br>"+"Task due date is before "+daysCrossedTheDueDate+" days";
+    cardTitle.className = "generalClass";
+    return cardTitle;
 }
 
 function createAlertItem(item){
     let card = document.createElement("div");
     card.className = "generalClass";
-    let cardTitle = document.createElement("div");
-    cardTitle.innerHTML = item["taskName"];
-    cardTitle.className = "generalClass";
+    let cardTitle = frameCardTitle(item["taskName"], item["completionDate"]);
     cardTitle.style.backgroundColor = taskColorMap[item["priority"]];
-    console.log(taskColorMap[item["priority"]]);
     card.appendChild(cardTitle);
+    let inputDateDiv = frameTheDateInputTag(item["id"], item["completionDate"]);
+    inputDateDiv.style.margin="15px";
+    card.appendChild(inputDateDiv);
+    let deleteBtn = frameDeleteButton(item["id"]);
+    deleteBtn.innerText = "Mark as done and delete";
+    deleteBtn.style.height = "auto";
+    card.append(deleteBtn);
+    console.log(item['completionDate']);
     return card;
 }
 function frameAlertMessage(){
-    console.log("Inside the frameAlertMessage");
+    let alertElementDiv = document.getElementById("alertMessage");
+    if(alertElementDiv.style.display == "block") return ;
     (async() => {
         let response = await performAPICall("GET", expiredTaskAPI);
         let taskList = response.taskList;
-        console.log("taskList.length >> ",taskList.length);
         if(taskList.length >0){
-            let taskIdList = []
-            let alertElement = document.getElementById("dialogBox");
+            let alertElement = document.getElementById("alertMessage");
             alertElement.innerHTML = `
             <h3> Task Timeline Exceeded List </h3>
             `
@@ -388,10 +425,14 @@ function frameAlertMessage(){
                 let createElement = createAlertItem(item);
                 alertElement.appendChild(createElement);
             });
+            let centerTagDiv = document.createElement("center");
             let closeButton = document.createElement("button");
             closeButton.innerText = "Close";
+            closeButton.style.width = "100px";
+            closeButton.style.borderRadius = "5px";
             closeButton.addEventListener("click",closeDialog);
-            alertElement.appendChild(closeButton);
+            centerTagDiv.appendChild(closeButton);
+            alertElement.appendChild(centerTagDiv);
             openDialog();
         }
     })();
