@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="style2.css">
+</head>
+<body>
+    <div class="wrapper" id="wrapper">
+        <h1>Sign Up</h1>
+        <div id="messageDiv"></div>
+        <div class="input-box">
+            <div class="email-box">
+                <input type="text" placeholder="Email ID" id="emailId">
+                <i class="fa-solid fa-envelope"></i>
+            </div>
+            <div class="username-box">
+                <input type="text" placeholder="Username" id="username">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="password-box">
+                <input type="password" placeholder="Enter the Password" id="originalPassword">
+                <i class="fa-solid fa-unlock"></i>
+            </div>
+            <div class="confirm-password-box">
+                <input type="password" placeholder="Confirm the Password" id="confirmPassword">
+                <i class="fa-solid fa-unlock"></i>
+            </div>
+        </div>
+        <div class="login-box">
+            <p> Already a member <a href="index.html"> Log In</a></p>
+        </div>
+        <div class="sign-up-box">
+            <button id="signUpBtn">Sign Up</button>
+        </div>
+    </div>
+    <div class="overlay-box" id="overlay-box">
+        <div class="spin-loading" id="spin-loading"></div>
+        <p> Loading takes time 1 to 2 mins since the application is backend hosted for free</p>
+    </div>
+    <script>
+        // const hostName = "localhost";
+        // const addNewUserUrl = `http://${hostName}:8080/user/add`;
+        const hostName = "todolistapi-1c8b.onrender.com";
+        const addNewUserUrl = `https://${hostName}/user/add`;
+        const signUpBtn = document.getElementById("signUpBtn");
+        let response = null;
+        
+        function displayErrorDiv(msg, color){
+            const wrapperDiv = document.getElementById("wrapper");
+            let msgDiv = document.getElementById("msgDiv");
+            if(msgDiv){
+                msgDiv.remove();
+            }
+            let createdDiv = document.createElement("div");
+            createdDiv.id = "msgDiv";
+            let paraTag = document.createElement("p");
+
+            paraTag.innerText = msg;
+            paraTag.style.color = color;
+            paraTag.style.textAlign = "center";
+
+            createdDiv.appendChild(paraTag);
+            wrapperDiv.prepend(createdDiv);
+        }
+        
+        function addNewUserFunction(){
+            const emailId = document.getElementById("emailId").value;
+            const username = document.getElementById("username").value;
+            const originalPassword = document.getElementById("originalPassword").value;
+            const confirmPassword = document.getElementById("confirmPassword").value;
+            if(originalPassword == confirmPassword){
+                let payload = {
+                    "emailId" : emailId,
+                    "userName" : username,
+                    "password" : originalPassword
+                };
+                (async()=>{
+                    try {
+                        let overlayBox = document.getElementById("overlay-box");
+                        overlayBox.style.display = "flex";
+                        let spinLoadingDiv = document.getElementById("spin-loading");
+                        spinLoadingDiv.style.display = "block";
+                        response = await fetch(addNewUserUrl, {
+                            method: "POST",
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+                        response = await response.json();
+                        response = response['message'];
+                        if(response == "New User Added Successfully"){
+                            displayErrorDiv(response, "green");
+                        }
+                        else{
+                            displayErrorDiv(response, "red");
+                        }
+                    } catch (error) {
+                        console.error(`Post request error:`, error);
+                        displayErrorDiv("API failed please try later", "red");
+                    }
+                    finally{
+                        let overlayBox = document.getElementById("overlay-box");
+                        overlayBox.style.display = "none";
+                        let spinLoadingDiv = document.getElementById("spin-loading");
+                        spinLoadingDiv.style.display = "none";
+                    }
+                })();
+            }else{
+                displayErrorDiv("Entered password and Confirm password does not match", "red");
+            }
+        }
+
+        signUpBtn.addEventListener("click",addNewUserFunction);
+    </script>
+</body>
+</html>

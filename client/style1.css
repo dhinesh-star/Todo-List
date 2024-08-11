@@ -1,0 +1,140 @@
+*{
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    /* background: aqua; */
+    background-image: url(cat-gazes-through-the-window-into-a-world-of-big-synthwave-44.jpg);
+    background-size: cover; 
+    background-position: center;
+}
+
+.wrapper{
+    width: 420px;
+    /* background: purple; */
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(2px);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.418);
+    /* box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); */
+    color: #fff;
+    border-radius: 10px;
+    padding: 30px 40px;
+}
+
+.wrapper h1{
+    font-size: 36px;
+    text-align: center;
+}
+
+.wrapper .input-box{
+    margin: 30px 0;
+}
+
+.input-box input{
+    width: 90%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    color: white;
+}
+
+.username-box, .password-box{
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid black;
+    border-radius: 40px;
+}
+
+
+.input-box input::placeholder{
+    color: #eee8e8 
+}
+
+.remember-forgot{
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px;
+    padding: 10px;
+}
+
+.remember-forgot a:hover{
+    text-decoration: underline;
+}
+
+.wrapper a{
+    color: white;
+    text-decoration: none;
+}
+
+.wrapper button{
+    width: 100%;
+    height: 45px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 40px;
+    border:none;
+    /* margin:10px; */
+    padding: 10px;
+}
+
+.wrapper button:hover{
+    border-color: white;
+    color: white;
+    background-color: rgba(255,255,255,0.5);
+}
+
+.register-link{
+    text-align: center;
+    margin-top: 10px;
+}
+
+.register-link a{
+    font-weight:600;
+}
+
+.register-link a:hover{
+    text-decoration: underline;
+}
+
+.overlay{
+    display: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255,255,255,0.5);
+    /* display: flex; */
+    justify-content:center;
+    align-items:center;
+    flex-direction: column;
+    color: red;
+    font-weight: bold;
+    font-size: 25px;
+}
+
+.spinLoading{
+    display: none;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border-top: 5px solid blue;
+    animation: spin 5s linear infinite ;
+}
+
+@keyframes spin {
+    0%{
+        transform: rotate(0deg);
+    }
+    100%{
+        transform: rotate(3600deg);
+    }
+}

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="style1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <div class="wrapper" id="wrapper">
+        <h1>Login</h1>
+        <form action=""></form>
+        <div class="input-box">
+            <div class="username-box">
+                <input type="text" placeholder="username" id="user">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="password-box">
+                <input type="password" placeholder="password" id="password">
+                <i class="fa-solid fa-unlock"></i>
+            </div>
+        </div>
+        <div class="remember-forgot">
+            <label> <input type="checkbox"> Remember me </label>
+            <a href="#"> Forgot Password?</a>
+        </div>
+        <button id="loginBtn"> Login </button>
+        <div class="register-link">
+            <p>Don't have account? <a href="signin.html"> Register</a> </p>
+        </div>
+    </div>
+    <div class="overlay" id="overlay">
+        <div class="spinLoading" id="spinLoading"></div>
+        <p> Loading takes time 1 to 2 mins since the application is backend hosted for free</p>
+    </div>
+    <script>
+        const loginButton = document.getElementById("loginBtn");
+        // const hostName = "localhost";
+        const hostName = "todolistapi-1c8b.onrender.com";
+        
+
+        function frameAPI(hostName, endpoint, params = {}) {
+            // let url = `http://${hostName}:8080/user/${endpoint}`;
+            let url = `https://${hostName}/user/${endpoint}`;
+            if (Object.keys(params).length !== 0) {
+                url += '?';
+                for (let key in params) {
+                    if (params.hasOwnProperty(key)) {
+                        url += key + '=' + params[key] + "&";
+                    }
+                }
+                url = url.substring(0, url.length - 1);
+            }
+            return url;
+        }
+
+        async function performAPICall(method, url, payload = {}) {
+            try {
+                let overlayDiv = document.getElementById("overlay");
+                overlayDiv.style.display = "flex";
+
+                let spinLoading = document.getElementById("spinLoading");
+                spinLoading.style.display = "block";
+
+                let response;
+                if (method === "GET") {
+                    response = await fetch(url);
+                    let responseFromDB = await response.json();
+                    return responseFromDB;
+                } else if (method === "POST") {
+                    response = await fetch(url, {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    let responseData = await response.json();
+                    return responseData;
+                }
+            } catch (error) {
+                console.error(`${method} request error:`, error);
+            }
+            finally{
+                let overlayElement = document.getElementById("overlay");
+                overlayElement.style.display = "none";
+
+                let spinLoadingDiv = document.getElementById("spinLoading");
+                spinLoadingDiv.style.display = "none";
+            }
+        }
+
+        function displayErrorMessage(){
+            const wrapperDiv = document.getElementById('wrapper');
+
+            let createDiv = document.createElement("div");
+            let paraTag = document.createElement("p");
+            paraTag.innerText = "User Not found! Try again after login";
+
+            paraTag.style.color = "red";
+            paraTag.style.textAlign = "center";
+
+            createDiv.appendChild(paraTag);
+            wrapperDiv.prepend(createDiv);
+        }
+        
+        function authenicateUser(){
+            (async () => {
+                const username = document.getElementById("user").value;
+                const password = document.getElementById("password").value;
+                const loginAPI = frameAPI(hostName, "authenicate", {"username": username, "password": password});
+                let response = await performAPICall("GET", loginAPI, {});
+                console.log(response);
+                let msg = response['message'] || "";
+                if(msg=="Authenicated User"){ 
+                    localStorage.setItem("username",username);
+                    window.location.href = "main.html";
+                }
+                displayErrorMessage();
+            })()
+        }
+        loginButton.addEventListener("click", authenicateUser);
+    </script>
+</body>
+</html>
